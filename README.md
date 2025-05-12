@@ -1,5 +1,27 @@
 # Fraud Detection System
 
+## Workshop Guide
+
+This repository is part of a KYC/AML Anomaly Detection Workshop that demonstrates how to use vector databases for fraud detection. The complete workshop guide is available in the included files:
+
+- `KYC_AML Anomaly Detection Workshop Using AstraDB and Langflow.pdf`
+- `fsi-kyc-aml-workshop.md`
+
+### Workshop Overview
+
+In this hands-on workshop, participants will build an ML-powered system to identify suspicious financial transactions for KYC/AML compliance. We leverage vector embeddings to establish a baseline for "normal" transactions and identify outliers using distance measurements. When suspicious transactions are flagged, we use generative AI to provide human-readable explanations of why the transaction might be fraudulent.
+
+### Workshop Outline
+
+1. **Introduction** - Overview of KYC/AML challenges and vector similarity for anomaly detection
+2. **Setting Up AstraDB** - Create a database and collection for storing transaction data and vectors
+3. **Download Custom AstraDB MCP Server** - Clone and configure the MCP server for transaction generation
+4. **Create Baseline Transactions** - Use the MCP server to generate 'good' transactions
+5. **Calculate Average Vector** - Run `get_average_vector.py` to establish the baseline centroid
+6. **Generate and Analyze Fraudulent Transactions** - Create 'bad' transactions and explore in AstraDB UI
+7. **Use Langflow for Fraud Explanation** - Create workflows to explain why transactions are flagged
+8. **Conclusion and Next Steps** - Review and discuss production considerations
+
 ## Overview
 
 This system demonstrates how to use vector embeddings and vector math for anomaly detection in financial transactions. The core concept leverages vector distance calculations to identify potentially fraudulent transactions that deviate significantly from normal patterns.
@@ -108,3 +130,51 @@ The `.env` file containing your credentials is included in `.gitignore` to preve
 - Consider periodically recalculating the average vector as new normal transactions are added
 - Experiment with different distance thresholds to balance false positives and false negatives
 - For production use, consider implementing more sophisticated techniques such as clustering or isolation forests alongside vector similarity
+
+## Creating Test Transactions
+
+To create 'good' and 'bad' transactions for demonstration purposes, this workshop uses a custom Astra DB MCP (Model Context Protocol) server that leverages the vectorize functionality.
+
+### What is MCP?
+
+MCP (Model Context Protocol) is a standard that connects AI systems with external tools and data sources. In this workshop, we use a custom MCP server to connect to AstraDB, explore collections, and perform bulk operations for generating and managing transaction data.
+
+### MCP Server Setup
+
+1. Clone the MCP server repository:
+   ```
+   git clone https://github.com/teddstax/astra-db-mcp-vectorize.git
+   ```
+
+2. Follow the setup instructions in the MCP server repository to configure and run the server.
+
+3. The MCP server provides specialized functions for:
+   - Generating synthetic transaction data that mimics real financial transactions
+   - Converting transaction data into vector embeddings using OpenAI's ada-002 model (1536 dimensions)
+   - Storing both the transaction data and vector embeddings in your Astra DB collection
+   - Creating both normal and anomalous transactions for testing
+
+### Workshop Flow
+
+1. **Set up AstraDB**: Create a database and vector-enabled collection
+
+2. **Generate Normal Transactions**: Use the MCP server to create 50-100 'good' (normal) transactions in your Astra DB collection
+   - These transactions establish patterns of legitimate financial activity
+   - Each transaction includes attributes like date, time, amount, vendor, location, etc.
+   - The MCP server automatically converts these to vector embeddings and stores them in AstraDB
+
+3. **Calculate Baseline**: Run `get_average_vector.py` to calculate the centroid (average vector) of all normal transactions
+   - This centroid represents the mathematical center of what constitutes "normal" behavior
+   - The script stores this centroid in your AstraDB collection with a special type identifier
+
+4. **Generate Anomalous Transactions**: Use the MCP server to create 'bad' (anomalous) transactions
+   - These transactions deviate from normal patterns in subtle or obvious ways
+   - They might include unusual amounts, suspicious locations, odd timing, etc.
+
+5. **Detect Anomalies**: Use the anomaly detection code example to identify the fraudulent transactions
+   - Calculate the Euclidean distance between each transaction and the baseline centroid
+   - Transactions with distances exceeding a threshold are flagged as suspicious
+
+6. **Explain Flagged Transactions**: Use Langflow (optional) to generate human-readable explanations for why transactions were flagged
+
+For detailed step-by-step instructions, refer to the workshop guides included in this repository.
